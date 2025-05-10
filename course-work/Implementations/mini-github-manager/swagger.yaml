@@ -1,0 +1,507 @@
+openapi: 3.0.3
+info:
+  title: Mini-GitHub-Manager API
+  description: REST API for managing users, repositories, and commits with enhanced validation, error handling, and full functionality.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/api
+    description: Local development server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    page:
+      in: query
+      name: page
+      schema:
+        type: integer
+        default: 1
+      description: The page number for pagination.
+    size:
+      in: query
+      name: size
+      schema:
+        type: integer
+        default: 10
+      description: The size of each page of results.
+    sort:
+      in: query
+      name: sort
+      schema:
+        type: string
+        default: id
+      description: The field to sort the results by (e.g., id, username, etc.).
+
+  schemas:
+    User:
+      type: object
+      required:
+        - username
+        - email
+      properties:
+        id:
+          type: integer
+          description: The unique identifier of the user.
+        username:
+          type: string
+          maxLength: 50
+          description: The unique username of the user.
+        email:
+          type: string
+          maxLength: 100
+          pattern: "^[\\S]+@[\\S]+\\.[\\S]+$"
+          description: The email address of the user.
+      example:
+        id: 1
+        username: john_doe
+        email: john.doe@example.com
+
+    Repository:
+      type: object
+      required:
+        - name
+        - userId
+      properties:
+        id:
+          type: integer
+          description: The unique identifier of the repository.
+        name:
+          type: string
+          maxLength: 100
+          description: The name of the repository.
+        description:
+          type: string
+          maxLength: 255
+          description: A brief description of the repository.
+        userId:
+          type: integer
+          description: The user ID of the owner of the repository.
+      example:
+        id: 1
+        name: my-awesome-repo
+        description: A repository to store awesome code.
+        userId: 1
+
+    Commit:
+      type: object
+      required:
+        - title
+        - message
+        - repositoryId
+      properties:
+        id:
+          type: integer
+          description: The unique identifier of the commit.
+        title:
+          type: string
+          maxLength: 100
+          description: The title of the commit.
+        message:
+          type: string
+          maxLength: 255
+          description: The commit message.
+        timestamp:
+          type: string
+          format: date-time
+          description: The timestamp of the commit.
+        repositoryId:
+          type: integer
+          description: The repository ID the commit belongs to.
+      example:
+        id: 1
+        title: Initial commit
+        message: Added the first version of the app.
+        timestamp: "2025-05-10T14:30:00Z"
+        repositoryId: 1
+
+security:
+  - bearerAuth: []
+
+paths:
+  /users:
+    get:
+      summary: Returns a list of users with search, pagination, and sorting support.
+      parameters:
+        - in: query
+          name: username
+          schema:
+            type: string
+          description: Search by username.
+        - in: query
+          name: email
+          schema:
+            type: string
+          description: Search by email.
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/size'
+        - $ref: '#/components/parameters/sort'
+      responses:
+        200:
+          description: Successfully retrieved a list of users.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+              examples:
+                application/json:
+                  value: [
+                    {
+                      "id": 1,
+                      "username": "john_doe",
+                      "email": "john.doe@example.com"
+                    },
+                    {
+                      "id": 2,
+                      "username": "jane_smith",
+                      "email": "jane.smith@example.com"
+                    }
+                  ]
+        400:
+          description: Invalid search or pagination parameters.
+        500:
+          description: Internal server error.
+
+    post:
+      summary: Creates a new user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        201:
+          description: Successfully created the user.
+        400:
+          description: Invalid data provided for creating the user.
+
+  /users/{id}:
+    get:
+      summary: Returns the user by ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Successfully retrieved the user by ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        404:
+          description: User not found.
+        500:
+          description: Internal server error.
+
+    put:
+      summary: Updates the user by ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        200:
+          description: Successfully updated the user.
+        400:
+          description: Invalid data provided for updating the user.
+        404:
+          description: User not found.
+
+    delete:
+      summary: Deletes the user by ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        204:
+          description: Successfully deleted the user.
+        404:
+          description: User not found.
+
+  /repositories:
+    get:
+      summary: Returns a list of repositories with search, pagination, and sorting support.
+      parameters:
+        - in: query
+          name: name
+          schema:
+            type: string
+          description: Search by repository name.
+        - in: query
+          name: userId
+          schema:
+            type: integer
+          description: Search by user ID.
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/size'
+        - $ref: '#/components/parameters/sort'
+      responses:
+        200:
+          description: Successfully retrieved a list of repositories.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Repository'
+        400:
+          description: Invalid search or pagination parameters.
+        500:
+          description: Internal server error.
+
+    post:
+      summary: Creates a new repository.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Repository'
+      responses:
+        201:
+          description: Successfully created the repository.
+        400:
+          description: Invalid data provided for creating the repository.
+
+  /repositories/{id}:
+    get:
+      summary: Returns the repository by ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Successfully retrieved the repository by ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Repository'
+        404:
+          description: Repository not found.
+        500:
+          description: Internal server error.
+
+    put:
+      summary: Updates the repository by ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Repository'
+      responses:
+        200:
+          description: Successfully updated the repository.
+        400:
+          description: Invalid data provided for updating the repository.
+        404:
+          description: Repository not found.
+
+    delete:
+      summary: Deletes the repository by ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        204:
+          description: Successfully deleted the repository.
+        404:
+          description: Repository not found.
+
+  /commits:
+    get:
+      summary: Returns a list of commits with search, pagination, and sorting support.
+      parameters:
+        - in: query
+          name: title
+          schema:
+            type: string
+          description: Search by commit title.
+        - in: query
+          name: repositoryId
+          schema:
+            type: integer
+          description: Search by repository ID.
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/size'
+        - $ref: '#/components/parameters/sort'
+      responses:
+        200:
+          description: Successfully retrieved a list of commits.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Commit'
+        400:
+          description: Invalid search or pagination parameters.
+        500:
+          description: Internal server error.
+
+    post:
+      summary: Creates a new commit.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Commit'
+      responses:
+        201:
+          description: Successfully created the commit.
+        400:
+          description: Invalid data provided for creating the commit.
+
+  /commits/{id}:
+    get:
+      summary: Returns the commit by ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Successfully retrieved the commit by ID.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Commit'
+        404:
+          description: Commit not found.
+        500:
+          description: Internal server error.
+
+    put:
+      summary: Updates the commit by ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Commit'
+      responses:
+        200:
+          description: Successfully updated the commit.
+        400:
+          description: Invalid data provided for updating the commit.
+        404:
+          description: Commit not found.
+
+    delete:
+      summary: Deletes the commit by ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        204:
+          description: Successfully deleted the commit.
+        404:
+          description: Commit not found.
+
+  /auth/login:
+    post:
+      summary: Logs in a user and returns a JWT token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: The username of the user.
+                password:
+                  type: string
+                  description: The password of the user.
+      responses:
+        200:
+          description: Successfully logged in and received a JWT token.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: The JWT token.
+        400:
+          description: Invalid credentials.
+
+  /auth/register:
+    post:
+      summary: Registers a new user and returns a JWT token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: The username of the new user.
+                email:
+                  type: string
+                  description: The email of the new user.
+                password:
+                  type: string
+                  description: The password for the new user.
+      responses:
+        201:
+          description: Successfully registered and received a JWT token.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: The JWT token.
+        400:
+          description: Invalid data for registration.
