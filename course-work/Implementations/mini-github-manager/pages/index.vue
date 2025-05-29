@@ -3,6 +3,12 @@
 import { useDisplay } from "vuetify";
 import type { VForm } from "vuetify/components";
 
+// Layout
+definePageMeta({
+  layout: "default",
+  requiresAuth: true,
+});
+
 // ===== Responsive Design =====
 // Destructure `smAndDown` to detect screen sizes
 const { smAndDown } = useDisplay();
