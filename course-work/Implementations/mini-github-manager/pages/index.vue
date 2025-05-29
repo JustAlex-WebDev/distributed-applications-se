@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // Imports
 import { useDisplay } from "vuetify";
+import type { VForm } from "vuetify/components";
 
 // ===== Responsive Design =====
 // Destructure `smAndDown` to detect screen sizes
@@ -63,22 +64,24 @@ const dialog = ref<boolean>(false);
 const currentPage = ref(1);
 
 // ===== User Data =====
+const userForm = ref<VForm | null>(null);
+
 // Dummy user data
 const users = ref<User[]>([
-  { id: 1, username: "user1", email: "user1@example.com" },
-  { id: 2, username: "user2", email: "user2@example.com" },
-  { id: 3, username: "user3", email: "user3@example.com" },
-  { id: 4, username: "user4", email: "user4@example.com" },
-  { id: 5, username: "user5", email: "user5@example.com" },
-  { id: 6, username: "user6", email: "user6@example.com" },
-  { id: 7, username: "user7", email: "user7@example.com" },
-  { id: 8, username: "user8", email: "user8@example.com" },
+  { id: 1748537979756, username: "john_doe", email: "john.doe@example.com" },
+  { id: 1748537979757, username: "jane_smith", email: "jane.smith@example.com" },
+  { id: 1748537979758, username: "alice_brown", email: "alice.brown@example.com" },
+  { id: 1748537979759, username: "bob_white", email: "bob.white@example.com" },
+  { id: 1748537979760, username: "charlie_gray", email: "charlie.gray@example.com" },
+  { id: 1748537979761, username: "david_black", email: "david.black@example.com" },
+  { id: 1748537979762, username: "emma_green", email: "emma.green@example.com" },
+  { id: 1748537979763, username: "frank_blue", email: "frank.blue@example.com" },
 ]);
 
 // ===== Table Configuration =====
 // Table headers
 const headers = ref([
-  { text: "ID", value: "id", icon: "" },
+  { text: "ID", value: "id", icon: "", sortable: true },
   { text: "Username", value: "username", icon: "mdi-account-outline" },
   { text: "Email", value: "email", icon: "mdi-email-outline" },
   { text: "Actions", value: "actions", icon: "" },
@@ -90,14 +93,14 @@ interface Repository {
   id: number;
   name: string;
   description: string;
-  user_id: number;
+  user_id: number | null;
 }
 
 // Default structure for user records
 const DEFAULT_REPOSITORY_RECORD: Omit<Repository, "id"> = {
   name: "",
   description: "",
-  user_id: 0,
+  user_id: null,
 };
 
 // Active repo record
@@ -125,7 +128,10 @@ const paginatedUsers = computed(() => {
  */
 const add = () => {
   isEditing.value = false;
-  record.value = { id: Date.now(), ...DEFAULT_RECORD };
+  record.value = {
+    id: Date.now(),
+    ...DEFAULT_RECORD,
+  };
   dialog.value = true;
 };
 
@@ -153,42 +159,82 @@ const remove = (id: number) => {
 /**
  * Save the current record (add or update).
  */
-const save = () => {
-  if (!record.value) return;
+const save = async () => {
+  const isValid = await userForm.value?.validate();
+  if (!isValid?.valid || !record.value) return;
 
   if (isEditing.value) {
-    // Update an existing user
-    const index = users.value.findIndex((u) => u.id === record.value?.id);
+    const index = users.value.findIndex((u) => u.id === record.value!.id);
     if (index !== -1) {
       users.value[index] = { ...record.value };
     }
   } else {
-    // Add a new user
     users.value.push({ ...record.value });
   }
 
-  // Close the dialog
   dialog.value = false;
   record.value = null;
 };
 
 // ===== Repositories Data =====
+const repositoryForm = ref<VForm | null>(null);
+
 // Dummy repositories data
 const repositories = ref<Repository[]>([
-  { id: 1, name: "repo1", description: "repo1@example.com", user_id: 1 },
-  { id: 2, name: "repo2", description: "repo2@example.com", user_id: 2 },
-  { id: 3, name: "repo3", description: "repo3@example.com", user_id: 3 },
-  { id: 4, name: "repo4", description: "repo4@example.com", user_id: 4 },
-  { id: 5, name: "repo5", description: "repo5@example.com", user_id: 5 },
-  { id: 6, name: "repo6", description: "repo6@example.com", user_id: 6 },
-  { id: 7, name: "repo7", description: "repo7@example.com", user_id: 7 },
-  { id: 8, name: "repo8", description: "repo8@example.com", user_id: 8 },
+  {
+    id: 1748537989756,
+    name: "project_alpha",
+    description: "Initial commit of Project Alpha",
+    user_id: 1748537979756,
+  },
+  {
+    id: 1748537989757,
+    name: "website_beta",
+    description: "Website Beta development",
+    user_id: 1748537979757,
+  },
+  {
+    id: 1748537989758,
+    name: "api_gamma",
+    description: "API Gamma service",
+    user_id: 1748537979758,
+  },
+  {
+    id: 1748537989759,
+    name: "mobile_delta",
+    description: "Mobile Delta application",
+    user_id: 1748537979759,
+  },
+  {
+    id: 1748537989760,
+    name: "library_epsilon",
+    description: "Reusable Library Epsilon",
+    user_id: 1748537979760,
+  },
+  {
+    id: 1748537989761,
+    name: "toolset_zeta",
+    description: "Zeta toolset utilities",
+    user_id: 1748537979761,
+  },
+  {
+    id: 1748537989762,
+    name: "framework_eta",
+    description: "Development framework Eta",
+    user_id: 1748537979762,
+  },
+  {
+    id: 1748537989763,
+    name: "cms_theta",
+    description: "Content Management System Theta",
+    user_id: 1748537979763,
+  },
 ]);
 
 // ===== Table Configuration =====
 // Table headers
 const repositoriesHeaders = ref([
-  { text: "ID", value: "id", icon: "" },
+  { text: "ID", value: "id", icon: "", sortable: true },
   { text: "Name", value: "name", icon: "" },
   { text: "Description", value: "description", icon: "" },
   { text: "User ID", value: "user_id", icon: "" },
@@ -239,33 +285,33 @@ const removeRepository = (id: number) => {
 /**
  * Save the current record (add or update).
  */
-const saveRepository = () => {
-  if (!repositoryRecord.value) return;
+const saveRepository = async () => {
+  const isValid = await repositoryForm.value?.validate();
+  if (!isValid?.valid || !repositoryRecord.value) return;
 
   if (isEditing.value) {
-    // Update an existing user
     const index = repositories.value.findIndex((r) => r.id === repositoryRecord.value?.id);
     if (index !== -1) {
       repositories.value[index] = { ...repositoryRecord.value };
     }
   } else {
-    // Add a new user
     repositories.value.push({ ...repositoryRecord.value });
   }
 
-  // Close the dialog
   repositoryDialog.value = false;
   repositoryRecord.value = null;
 };
 
 // Commit Logic
+const commitForm = ref<VForm | null>(null);
+
 // Define types for clarity and consistency
 interface Commit {
   id: number;
   title: string;
   message: string;
   timestamp: string;
-  repository_id: number;
+  repository_id: number | null;
 }
 
 // Default structure for user records
@@ -273,7 +319,7 @@ const DEFAULT_COMMIT_RECORD: Omit<Commit, "id"> = {
   title: "",
   message: "",
   timestamp: "",
-  repository_id: 0,
+  repository_id: null,
 };
 
 // Active commit record
@@ -288,20 +334,68 @@ const currentCommitPage = ref(1);
 // ===== Commits Data =====
 // Dummy commits data
 const commits = ref<Commit[]>([
-  { id: 1, title: "title1", message: "message1", timestamp: "some day", repository_id: 1 },
-  { id: 2, title: "title2", message: "message2", timestamp: "some day", repository_id: 2 },
-  { id: 3, title: "title3", message: "message3", timestamp: "some day", repository_id: 3 },
-  { id: 4, title: "title4", message: "message4", timestamp: "some day", repository_id: 4 },
-  { id: 5, title: "title5", message: "message5", timestamp: "some day", repository_id: 5 },
-  { id: 6, title: "title6", message: "message6", timestamp: "some day", repository_id: 6 },
-  { id: 7, title: "title7", message: "message7", timestamp: "some day", repository_id: 7 },
-  { id: 8, title: "title8", message: "message8", timestamp: "some day", repository_id: 8 },
+  {
+    id: 1748537999756,
+    title: "Initialize repository",
+    message: "Added README and basic project structure.",
+    timestamp: "2025-05-28T12:34:56Z",
+    repository_id: 1748537989756,
+  },
+  {
+    id: 1748537999757,
+    title: "Add login feature",
+    message: "Implemented user login functionality.",
+    timestamp: "2025-05-27T09:22:41Z",
+    repository_id: 1748537989757,
+  },
+  {
+    id: 1748537999758,
+    title: "Fix bug in API response",
+    message: "Corrected status codes and response structure.",
+    timestamp: "2025-05-26T15:11:23Z",
+    repository_id: 1748537989758,
+  },
+  {
+    id: 1748537999759,
+    title: "Update UI components",
+    message: "Improved styling and responsiveness.",
+    timestamp: "2025-05-25T18:47:05Z",
+    repository_id: 1748537989759,
+  },
+  {
+    id: 1748537999760,
+    title: "Add unit tests",
+    message: "Increased coverage for core functions.",
+    timestamp: "2025-05-24T13:00:00Z",
+    repository_id: 1748537989760,
+  },
+  {
+    id: 1748537999761,
+    title: "Optimize database queries",
+    message: "Reduced query execution time by 30%.",
+    timestamp: "2025-05-23T10:29:18Z",
+    repository_id: 1748537989761,
+  },
+  {
+    id: 1748537999762,
+    title: "Improve documentation",
+    message: "Added examples and explanations.",
+    timestamp: "2025-05-22T14:15:39Z",
+    repository_id: 1748537989762,
+  },
+  {
+    id: 1748537999763,
+    title: "Deploy to production",
+    message: "Released version 1.0.0 to live environment.",
+    timestamp: "2025-05-21T16:45:00Z",
+    repository_id: 1748537989763,
+  },
 ]);
 
 // ===== Table Configuration =====
 // Table headers
 const commitsHeaders = ref([
-  { text: "ID", value: "id", icon: "" },
+  { text: "ID", value: "id", icon: "", sortable: true },
   { text: "Title", value: "title", icon: "" },
   { text: "Message", value: "message", icon: "" },
   { text: "Date", value: "timestamp", icon: "" },
@@ -353,8 +447,9 @@ const removeCommit = (id: number) => {
 /**
  * Save the current record (add or update).
  */
-const saveCommit = () => {
-  if (!commitRecord.value) return;
+const saveCommit = async () => {
+  const isValid = await commitForm.value?.validate();
+  if (!isValid?.valid || !commitRecord.value) return;
 
   if (isEditing.value) {
     // Update an existing user
@@ -521,7 +616,7 @@ watch(tab, (newValue) => {
                             <v-btn
                               v-bind="props"
                               variant="outlined"
-                              color="primary"
+                              color=""
                               rounded="lg"
                               v-ripple
                               prepend-icon="mdi-account-plus-outline"
@@ -551,7 +646,6 @@ watch(tab, (newValue) => {
                       :headers="headers"
                       :items="paginatedUsers"
                       :mobile="smAndDown"
-                      :disable-sort="true"
                       :hide-default-header="smAndDown"
                       hide-default-footer
                       density="compact"
@@ -662,23 +756,27 @@ watch(tab, (newValue) => {
                       :title="`${isEditing ? 'Edit' : 'Add'} a user`"
                     >
                       <template v-slot:text v-if="record">
-                        <v-row>
-                          <v-col cols="12">
-                            <v-text-field
-                              v-model="record.username"
-                              :hide-details="true"
-                              label="Username"
-                            ></v-text-field>
-                          </v-col>
+                        <v-form ref="userForm">
+                          <v-row>
+                            <v-col cols="12">
+                              <v-text-field
+                                v-model="record.username"
+                                label="Username"
+                                :hide-details="true"
+                                :rules="[(v) => !!v]"
+                              ></v-text-field>
+                            </v-col>
 
-                          <v-col cols="12">
-                            <v-text-field
-                              v-model="record.email"
-                              :hide-details="true"
-                              label="Email"
-                            ></v-text-field>
-                          </v-col>
-                        </v-row>
+                            <v-col cols="12">
+                              <v-text-field
+                                v-model="record.email"
+                                label="Email"
+                                :hide-details="true"
+                                :rules="[(v) => !!v]"
+                              ></v-text-field>
+                            </v-col>
+                          </v-row>
+                        </v-form>
                       </template>
 
                       <v-divider></v-divider>
@@ -735,7 +833,7 @@ watch(tab, (newValue) => {
                             <v-btn
                               v-bind="props"
                               variant="outlined"
-                              color="primary"
+                              color=""
                               rounded="lg"
                               v-ripple
                               prepend-icon="mdi-folder-plus-outline"
@@ -881,31 +979,40 @@ watch(tab, (newValue) => {
                       :title="`${isEditing ? 'Edit' : 'Add'} a repository`"
                     >
                       <template v-slot:text v-if="repositoryRecord">
-                        <v-row>
-                          <v-col cols="12">
-                            <v-text-field
-                              v-model="repositoryRecord.name"
-                              label="Name"
-                              :hide-details="true"
-                            ></v-text-field>
-                          </v-col>
+                        <v-form ref="repositoryForm">
+                          <v-row>
+                            <v-col cols="12">
+                              <v-text-field
+                                v-model="repositoryRecord.name"
+                                label="Name"
+                                :hide-details="true"
+                                :rules="[(v) => !!v]"
+                              ></v-text-field>
+                            </v-col>
 
-                          <v-col cols="12">
-                            <v-text-field
-                              v-model="repositoryRecord.description"
-                              label="Description"
-                              :hide-details="true"
-                            ></v-text-field>
-                          </v-col>
+                            <v-col cols="12">
+                              <v-text-field
+                                v-model="repositoryRecord.description"
+                                label="Description"
+                                :hide-details="true"
+                                :rules="[(v) => !!v]"
+                              ></v-text-field>
+                            </v-col>
 
-                          <v-col cols="12">
-                            <v-text-field
-                              v-model="repositoryRecord.user_id"
-                              label="User ID"
-                              :hide-details="true"
-                            ></v-text-field>
-                          </v-col>
-                        </v-row>
+                            <v-col cols="12">
+                              <!-- Dropdown to select user -->
+                              <v-select
+                                v-model="repositoryRecord.user_id"
+                                :items="users"
+                                item-title="id"
+                                item-value="id"
+                                label="Select User"
+                                :hide-details="true"
+                                :rules="[(v) => !!v]"
+                              ></v-select>
+                            </v-col>
+                          </v-row>
+                        </v-form>
                       </template>
 
                       <v-divider></v-divider>
@@ -967,7 +1074,7 @@ watch(tab, (newValue) => {
                             <v-btn
                               v-bind="props"
                               variant="outlined"
-                              color="primary"
+                              color=""
                               rounded="lg"
                               v-ripple
                               prepend-icon="mdi-note-plus-outline"
@@ -1118,31 +1225,40 @@ watch(tab, (newValue) => {
                       :title="`${isEditing ? 'Edit' : 'Add'} a commit`"
                     >
                       <template v-slot:text v-if="commitRecord">
-                        <v-row>
-                          <v-col cols="12">
-                            <v-text-field
-                              v-model="commitRecord.title"
-                              label="Title"
-                              :hide-details="true"
-                            ></v-text-field>
-                          </v-col>
+                        <v-form ref="commitForm">
+                          <v-row>
+                            <v-col cols="12">
+                              <v-text-field
+                                v-model="commitRecord.title"
+                                label="Title"
+                                :hide-details="true"
+                                :rules="[(v) => !!v]"
+                              ></v-text-field>
+                            </v-col>
 
-                          <v-col cols="12">
-                            <v-text-field
-                              v-model="commitRecord.message"
-                              label="Message"
-                              :hide-details="true"
-                            ></v-text-field>
-                          </v-col>
+                            <v-col cols="12">
+                              <v-text-field
+                                v-model="commitRecord.message"
+                                label="Message"
+                                :hide-details="true"
+                                :rules="[(v) => !!v]"
+                              ></v-text-field>
+                            </v-col>
 
-                          <v-col cols="12">
-                            <v-text-field
-                              v-model="commitRecord.repository_id"
-                              label="Repository ID"
-                              :hide-details="true"
-                            ></v-text-field>
-                          </v-col>
-                        </v-row>
+                            <v-col cols="12">
+                              <!-- Dropdown to select repository -->
+                              <v-select
+                                v-model="commitRecord.repository_id"
+                                :items="repositories"
+                                item-title="id"
+                                item-value="id"
+                                label="Select Repository"
+                                :hide-details="true"
+                                :rules="[(v) => !!v]"
+                              ></v-select>
+                            </v-col>
+                          </v-row>
+                        </v-form>
                       </template>
 
                       <v-divider></v-divider>

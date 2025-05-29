@@ -45,7 +45,7 @@ export default defineNuxtConfig({
     head: {
       title,
       titleTemplate: "%s",
-      htmlAttrs: { lang: "bg" },
+      htmlAttrs: { lang: "en" },
       link: [
         { rel: "stylesheet", href: "https://rsms.me/inter/inter.css" },
         { rel: "preconnect", href: "https://rsms.me/" },
@@ -57,22 +57,6 @@ export default defineNuxtConfig({
         { hid: "description", name: "description", content: description },
         { name: "author", content: author },
         { name: "theme-color", content: themeColor },
-
-        // Open Graph
-        { property: "og:site_name", content: title },
-        { hid: "og:type", property: "og:type", content: "website" },
-        { hid: "og:url", property: "og:url", content: url },
-        { hid: "og:title", property: "og:title", content: title },
-        { hid: "og:description", property: "og:description", content: description },
-        { hid: "og:image", property: "og:image", content: image },
-        { hid: "og:image:secure_url", property: "og:image:secure_url", content: image },
-
-        // Twitter
-        { name: "twitter:card", content: "summary_large_image" },
-        { hid: "twitter:url", name: "twitter:url", content: url },
-        { hid: "twitter:title", name: "twitter:title", content: title },
-        { hid: "twitter:description", name: "twitter:description", content: description },
-        { hid: "twitter:image", name: "twitter:image", content: image },
       ],
     },
   },
@@ -84,7 +68,7 @@ export default defineNuxtConfig({
       short_name: shortTitle,
       description: description,
       theme_color: themeColor,
-      lang: "bg",
+      lang: "en",
       background_color: "#ffffff",
       icons: [
         {
@@ -112,6 +96,15 @@ export default defineNuxtConfig({
           purpose: "maskable",
         },
       ],
+    },
+  },
+
+  // Runtime configuration for API and static resources
+  runtimeConfig: {
+    public: {
+      PORTAL_FE_KC_URL: process.env.NUXT_PUBLIC_PORTAL_FE_KC_URL || "",
+      PORTAL_FE_KC_REALM: process.env.NUXT_PUBLIC_PORTAL_FE_KC_REALM || "",
+      PORTAL_FE_KC_CLIENT_ID: process.env.NUXT_PUBLIC_PORTAL_FE_KC_CLIENT_ID || "",
     },
   },
 
