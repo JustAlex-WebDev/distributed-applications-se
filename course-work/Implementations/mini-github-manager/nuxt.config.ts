@@ -1,7 +1,7 @@
 import vuetify, { transformAssetUrls } from "vite-plugin-vuetify";
 
 // PWA Config
-const title = "Mini-GitHub-Manager";
+const title = "Mini GitHub Manager";
 const shortTitle = "MGH-Manager";
 const description =
   "Mini-GitHub-Manager е Nuxt 3 приложение за CRUD управление на потребители, хранилища и комити, с JWT-защитен API и Swagger документация.";
